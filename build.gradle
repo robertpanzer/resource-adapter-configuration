@@ -1,0 +1,42 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+version = '1.0'
+
+
+repositories {
+    mavenCentral()
+}
+
+def threadPoolSize = hasProperty('threadPoolSize') ? getProperty('threadPoolSize') : '30'
+def iterations = hasProperty('iterations') ? getProperty('iterations') : '1000'
+
+test {
+    testLogging.showStandardStreams = true
+
+    if (project.hasProperty('test.rarRA.threadPoolSize')) {
+        systemProperties(['test.rarRA.threadPoolSize': project.getProperty('test.rarRA.threadPoolSize')])
+    }
+
+    if (project.hasProperty('test.rarRa.iterations')) {
+        systemProperties(['test.rarRa.iterations'    : project.getProperty('iterations')])
+    } else {
+        systemProperties(['test.rarRa.iterations'    : '1000'])
+    }
+
+    if (project.hasProperty('TestMDB.InstanceLimit')) {
+        systemProperties(['TestMDB.InstanceLimit': project.getProperty('TestMDB.InstanceLimit')])
+    }
+
+}
+
+dependencies {
+
+    compile "javax:javaee-api:7.0"
+    compile 'com.jayway.awaitility:awaitility:1.6.1'
+
+    testCompile group: 'org.jboss.arquillian.junit', name: 'arquillian-junit-container', version: '1.1.5.Final'
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+
+    testRuntime "org.apache.openejb:arquillian-tomee-embedded:1.7.1"
+}
