@@ -19,10 +19,13 @@ package foo.bar;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.ResourceAdapterArchive;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -33,8 +36,8 @@ import static org.hamcrest.CoreMatchers.is;
 public class RATest {
 
     @Deployment
-    public static EnterpriseArchive deploy() throws Exception {
-        EnterpriseArchive ear = ShrinkWrap.create(EnterpriseArchive.class, "ratest.ear");
+    public static Archive<?> deploy() throws Exception {
+        WebArchive war = ShrinkWrap.create(WebArchive.class, "ratest.war");
 
 
         JavaArchive resourceAdapterJar = ShrinkWrap.create(JavaArchive.class, "resourceadapter.jar")
@@ -50,19 +53,23 @@ public class RATest {
         JavaArchive mdbJar = ShrinkWrap.create(JavaArchive.class, "mdb.jar")
                 .addClasses(TestMDB.class);
 
-        ear.addAsModules(rar, mdbJar)
+        war.addAsLibraries(rar, mdbJar)
             .addAsLibraries(resourceAdapterAPI);
 
-        return ear;
+        war.addClass(RATest.class);
+
+        return war;
     }
 
     @Test
     public void test() throws Exception {
-        Thread.sleep(2000);
-
-        int expectedIterations = Integer.valueOf(System.getProperty("test.rarRa.iterations"));
-        await().untilAtomic(TestMDB.numberOfCalls, is(expectedIterations));
+        int expectedIterations = 10;
+        long start = System.currentTimeMillis();
+        while (System.currentTimeMillis() - start < 10000) {
+            if (TestMDB.numberOfCalls.get() == expectedIterations) {
+                return;
+            }
+        }
+        Assert.fail("Only " + TestMDB.numberOfCalls.get() + " iterations");
     }
-
-
 }

@@ -31,7 +31,7 @@ public class TestResourceAdapter implements ResourceAdapter {
 
     private BootstrapContext ctx;
 
-    private int iterations = 1000;
+    private int iterations = 10;
 
     private Method listenerMethod;
 
